@@ -17,13 +17,3 @@ type Vuelo struct {
 	TiempoVuelo string
 	Cancelacion string
 }
-
-// LeerArchivo lee un CSV y retorna una lista de Vuelos.
-func LeerArchivo(nombre string) ([]*Vuelo, error) {
-	// ...
-}
-
-// ParsearVuelo convierte una línea CSV en un struct Vuelo.
-func ParsearVuelo(registro []string) (*Vuelo, error) {
-	// ...
-}
