@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	TDAColaPrioridad "tp2/tdas/cola_prioridad"
-	TDADiccionario "tp2/tdas/diccionario"
+	TDAColaPrioridad "tdas/cola_prioridad"
+	TDADiccionario "tdas/diccionario"
 
 	"github.com/stretchr/testify/require"
 )
@@ -211,7 +211,9 @@ func TestHeapSort(t *testing.T) {
 // BENCHMARKS
 
 func ejecutarPruebaVolumenHeap(b *testing.B, n int) {
+
 	/* Heap de máximos */
+
 	cmpMax := func(a, b int) int { return a - b }
 	heapMax := TDAColaPrioridad.CrearHeap(cmpMax)
 	dicHeapMax := TDADiccionario.CrearABB[int, int](cmpMax)
@@ -239,30 +241,36 @@ func ejecutarPruebaVolumenHeap(b *testing.B, n int) {
 	require.EqualValues(b, n, dicHeapMax.Cantidad(), "La cantidad de elementos es incorrecta")
 	require.EqualValues(b, n, heapMax.Cantidad(), "Encolar muchos elementos no funciona correctamente")
 
-	okMax := true
-	var anteriorMax int
-	for i := 0; i < n; i++ {
+	okMaxOrden := true
+	okMaxDesencolado := true
+	anteriorMax := heapMax.Desencolar() // El máximo elemento de todos
+	for i := 0; i < n-1; i++ {
+
+		// Validar orden decreciente
 		maxActual := heapMax.VerMax()
+		okMaxOrden = maxActual <= anteriorMax
+
+		if !okMaxOrden {
+			break
+		}
+
+		// Verificar coherencia entre lo que hay, y lo que desencolo
 		elemento := heapMax.Desencolar()
+		okMaxDesencolado = maxActual == elemento
 
-		// Verificar coherencia entre VerMax() y Desencolar()
-		if maxActual != elemento {
-			okMax = false
+		if !okMaxDesencolado {
 			break
 		}
 
-		// Validar orden no creciente (cada elemento debe ser <= al anterior)
-		if i > 0 && elemento > anteriorMax {
-			okMax = false
-			break
-		}
 		anteriorMax = elemento
 	}
 
-	require.True(b, okMax, "Desencolar muchos elementos no funciona correctamente en heap de máximos")
+	require.True(b, okMaxOrden, "Los elementos no están ordenados de mayor a menor, en el heap de máximos")
+	require.True(b, okMaxDesencolado, "Desencolar muchos elementos no funciona correctamente, en el heap de máximos")
 	require.EqualValues(b, 0, heapMax.Cantidad())
 
 	/* Heap de mínimos */
+
 	cmpMin := func(a, b int) int { return b - a }
 	heapMin := TDAColaPrioridad.CrearHeap(cmpMin)
 	dicHeapMin := TDADiccionario.CrearABB[int, int](cmpMax) // Misma comparación para el ABB
@@ -284,27 +292,32 @@ func ejecutarPruebaVolumenHeap(b *testing.B, n int) {
 	require.EqualValues(b, n, dicHeapMin.Cantidad(), "La cantidad de elementos es incorrecta")
 	require.EqualValues(b, n, heapMin.Cantidad(), "Encolar muchos elementos no funciona correctamente")
 
-	okMin := true
-	var anteriorMin int
-	for i := 0; i < n; i++ {
+	okMinOrden := true
+	okMinDesencolado := true
+	anteriorMin := heapMin.Desencolar() // El mínimo elemento de todos
+	for i := 0; i < n-1; i++ {
+
+		// Validar orden creciente
 		minActual := heapMin.VerMax()
+		okMinOrden = minActual >= anteriorMin
+
+		if !okMinOrden {
+			break
+		}
+
+		// Verificar coherencia entre lo que hay, y lo que desencolo
 		elemento := heapMin.Desencolar()
+		okMinDesencolado = minActual == elemento
 
-		// Verificar coherencia entre VerMax() y Desencolar()
-		if minActual != elemento {
-			okMin = false
+		if !okMinDesencolado {
 			break
 		}
 
-		// Validar orden no decreciente (cada elemento debe ser >= al anterior)
-		if i > 0 && elemento < anteriorMin {
-			okMin = false
-			break
-		}
 		anteriorMin = elemento
 	}
 
-	require.True(b, okMin, "Desencolar muchos elementos no funciona correctamente en heap de mínimos")
+	require.True(b, okMinOrden, "Los elementos no están ordenados de menor a mayor, en el heap de mínimos")
+	require.True(b, okMinDesencolado, "Desencolar muchos elementos no funciona correctamente, en el heap de mínimos")
 	require.EqualValues(b, 0, heapMin.Cantidad())
 }
 
@@ -346,17 +359,32 @@ func ejecutarPruebaVolumenHeapArr(b *testing.B, n int) {
 	require.EqualValues(b, n, dic.Cantidad(), "La cantidad de elementos es incorrecta")
 	require.EqualValues(b, n, len(arr), "La cantidad de elementos es incorrecta")
 
-	heapMax := TDAColaPrioridad.CrearHeapArr(arr, cmpMax)
+	heapMax := TDAColaPrioridad.CrearHeapArr(arr, cmpMax) // Se tiene que comportar como un heap cualquiera
 
-	okMax := true
-	for range n {
-		okMax = heapMax.VerMax() == heapMax.Desencolar()
-		if !okMax {
+	okMaxOrden := true
+	okMaxDesencolado := true
+	anteriorMax := heapMax.Desencolar()
+	for i := 0; i < n-1; i++ {
+
+		maxActual := heapMax.VerMax()
+		okMaxOrden = maxActual <= anteriorMax
+
+		if !okMaxOrden {
 			break
 		}
+
+		elemento := heapMax.Desencolar()
+		okMaxDesencolado = maxActual == elemento
+
+		if !okMaxDesencolado {
+			break
+		}
+
+		anteriorMax = elemento
 	}
 
-	require.True(b, okMax, "Desencolar muchos elementos no funciona correctamente")
+	require.True(b, okMaxOrden, "Los elementos no están ordenados de mayor a menor, en el heap de máximos de un arreglo")
+	require.True(b, okMaxDesencolado, "Desencolar muchos elementos no funciona correctamente, en el heap de máximos de un arreglo")
 	require.EqualValues(b, 0, heapMax.Cantidad())
 
 	/* Heap de mínimos */
@@ -364,15 +392,30 @@ func ejecutarPruebaVolumenHeapArr(b *testing.B, n int) {
 	cmpMin := func(a, b int) int { return b - a }
 	heapMin := TDAColaPrioridad.CrearHeapArr(arr, cmpMin) // Como el arreglo original no cambia, podemos reutilizarlo
 
-	okMin := true
-	for range n {
-		okMin = heapMin.VerMax() == heapMin.Desencolar()
-		if !okMin {
+	okMinOrden := true
+	okMinDesencolado := true
+	anteriorMin := heapMin.Desencolar()
+	for i := 0; i < n-1; i++ {
+
+		minActual := heapMin.VerMax()
+		okMinOrden = minActual >= anteriorMin
+
+		if !okMinOrden {
 			break
 		}
+
+		elemento := heapMin.Desencolar()
+		okMinDesencolado = minActual == elemento
+
+		if !okMinDesencolado {
+			break
+		}
+
+		anteriorMin = elemento
 	}
 
-	require.True(b, okMin, "Desencolar muchos elementos no funciona correctamente")
+	require.True(b, okMinOrden, "Los elementos no están ordenados de menor a mayor, en el heap de mínimos de un arreglo")
+	require.True(b, okMinDesencolado, "Desencolar muchos elementos no funciona correctamente, en el heap de mínimos de un arreglo")
 	require.EqualValues(b, 0, heapMin.Cantidad())
 }
 
